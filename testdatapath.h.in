@@ -1,0 +1,8 @@
+#ifndef configure_h
+#define configure_h
+
+#include <string>
+
+const std::string TEST_DATA_0("@TEST_DATA_0@");
+
+#endif
