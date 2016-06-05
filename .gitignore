@@ -1,7 +1,7 @@
 ### Original
 build/
-*.jpg
-*.png
+data/*.jpg
+data/*.png
 
 ### Vim
 # swap
