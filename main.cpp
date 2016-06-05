@@ -8,8 +8,16 @@
 
 using namespace std;
 
+int showImage(const cv::Mat& image, int wait = 0){
+	static const string wname("EBookChecker");
+
+	cv::imshow(wname, image);
+	return cv::waitKey(wait);
+}
+
 int main(int argc, char** argv)
 {
+
 
 #ifndef _DEBUG
 	string commandArgs =
@@ -25,4 +33,12 @@ int main(int argc, char** argv)
 	cout << "input file:" << src << endl;
 	
 
+	cv::Mat image = cv::imread(src);
+	showImage(image);
+
+	cv::Mat binary;
+	int binaryMax = 255;
+	int binaryThreshold = 128;
+	cv::threshold(image, binary, binaryThreshold, binaryMax, cv::THRESH_BINARY_INV);
+	showImage(binary);
 }
