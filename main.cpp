@@ -43,4 +43,11 @@ int main(int argc, char** argv)
 	cv::threshold(image, binary, binaryThreshold, binaryMax, cv::THRESH_BINARY_INV);
 	CV_Assert(binary.channels() == 1 && image.type() == CV_8UC1);
 	showImage(binary);
+	cv::imwrite("binary.jpg", binary);
+
+	cv::Mat integral;
+	cv::integral(binary, integral);
+	CV_Assert(integral.channels() == 1 && integral.type() == CV_32SC1);
+	showImage(integral);
+	cv::imwrite("integral.jpg", integral);
 }
