@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 	int binaryMax = 1;//二値化時の最大値は1に。積分するときに白だったところか黒だったところかがわかればいい。
 	int binaryThreshold = 128;
 	cv::threshold(image, binary, binaryThreshold, binaryMax, cv::THRESH_BINARY_INV);
-	CV_Assert(binary.channels() == 1 && image.type() == CV_8UC1);
+	CV_Assert(binary.channels() == 1 && binary.type() == CV_8UC1);
 	showImage(binary);
 	cv::imwrite("binary.jpg", binary);
 
