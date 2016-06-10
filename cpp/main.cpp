@@ -30,13 +30,12 @@ cv::Mat findSameValueHorizontal(const cv::Mat& src)
 	//結果は白黒の8bitなのでそのまま受け取っている。1行しかないので位置は0
 	unsigned char* dstLine = dst.ptr(0);
 
-	//左から調べるので初期値は左端
-	int before = srcLine[0];
+	//とりあえず結果画像の一番左だけは右隣と比較する
+	dstLine[0] = (srcLine[0] == srcLine[1]) * 255;
 	for (int i = 1; i < src.cols; i++){
+		//左隣と比較
 		//比較結果（0または1）なので255を掛けて見えるように
-		dstLine[i] = (srcLine[i] == before) * 255;
-		//次の比較のために値を代入
-		before = srcLine[i];
+		dstLine[i] = (srcLine[i] == srcLine[i-1]) * 255;
 	}
 
 	return dst;
