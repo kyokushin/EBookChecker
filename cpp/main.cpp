@@ -1,4 +1,4 @@
-#ifdef _DEBUG
+﻿#ifdef _DEBUG
 #include "testdatapath.h"
 #endif 
 
@@ -43,8 +43,6 @@ cv::Mat findSameValueHorizontal(const cv::Mat& src)
 
 int main(int argc, char** argv)
 {
-
-
 #ifndef _DEBUG
 	//コマンドライン引数の解析。デバッグの時は使わない
 	string commandArgs =
