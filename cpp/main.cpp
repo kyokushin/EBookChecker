@@ -16,29 +16,54 @@ int showImage(const cv::Mat& image, int wait = 0){
 	return cv::waitKey(wait);
 }
 
+class Range{
+public:
+	int start;
+	int end;
+	Range(int start, int end) :start(start), end(end){}
+	Range():start(-1), end(-1){}
+};
+
 //横方向をしらべる
-//値が同じ連続領域を1、それ以外を0とするcv::Matを返す。
-cv::Mat findSameValueHorizontal(const cv::Mat& src)
+//文字のない範囲をvectorで返す
+void findSameValueHorizontal(const cv::Mat& src, std::vector<Range>& ranges)
 {
 	//積分画像が欲しい
 	CV_Assert(src.type() == CV_32SC1);
 
-	//結果は白黒でいいから8bitの1チャンネル。しかも1行だけ
-	cv::Mat dst(1, src.cols, CV_8UC1);
+	//値が入っているかもしれないので空にする
+	ranges.clear();
+
 	//積分画像はintなのでint型のポインタを取得。下端なので位置はsrc.rows - 1
 	const int* srcLine = src.ptr<int>(src.rows - 1);
-	//結果は白黒の8bitなのでそのまま受け取っている。1行しかないので位置は0
-	unsigned char* dstLine = dst.ptr(0);
 
-	//とりあえず結果画像の一番左だけは右隣と比較する
-	dstLine[0] = (srcLine[0] == srcLine[1]) * 255;
+	Range range;
 	for (int i = 1; i < src.cols; i++){
-		//左隣と比較
-		//比較結果（0または1）なので255を掛けて見えるように
-		dstLine[i] = (srcLine[i] == srcLine[i-1]) * 255;
+		//左隣と同じ値
+		bool sameValue = srcLine[i] == srcLine[i - 1];
+		//左隣と同じ値 かつ 範囲のstartが初期値（-1）のとき
+		if (sameValue && range.start < 0){
+			//文字のない範囲の始まり
+			range.start = i - 1;
+		}
+		//左隣と違う値 かつ 範囲のstartが代入済み
+		else if (!sameValue && range.start >= 0){
+			
+			//文字のない範囲の終わり
+			range.end = i - 1;
+			//結果として保存
+			ranges.push_back(range);
+			//文字のない範囲を初期値に戻す
+			range.start = -1;
+			range.end = -1;
+		}
 	}
-
-	return dst;
+	//最後の範囲が画像の右端まである場合はfor文を抜けてから結果を保存する
+	//文字のない範囲のstartは代入済み かつ 範囲のendは初期値のとき
+	if (range.start >= 0 && range.end < 0){
+		range.end = src.cols - 1;
+		ranges.push_back(range);
+	}
 }
 
 int main(int argc, char** argv)
@@ -92,8 +117,28 @@ int main(int argc, char** argv)
 	cv::imwrite("integralVisible.jpg", integralVisible);
 
 
-	cv::Mat dst = findSameValueHorizontal(integral);
-	showImage(dst);
-	cv::imwrite("horizontalDst.jpg", dst);
+	//文字のない範囲を受け取る変数
+	vector<Range> horizontalRanges;
+	findSameValueHorizontal(integral, horizontalRanges);
+
+	//文字のない範囲を書き込む画像
+	cv::Mat horizontalRangeDst;
+	//1チャンネルの原画像から3チャンネルの画像を作る
+	cv::Mat srcArray[] = {image, image, image};
+	cv::merge(srcArray, 3, horizontalRangeDst);
+
+	//文字のない範囲を3チャンネルの原画像に書き込む
+	for (size_t i = 0; i < horizontalRanges.size(); i++){
+		Range& r = horizontalRanges[i];
+		//文字のない範囲を3チャンネルの原画像から切り出す
+		cv::Rect rect(r.start, 0, r.end - r.start + 1, horizontalRangeDst.rows);
+		cv::Mat roi(horizontalRangeDst, rect);
+		//切り出した画像を1色で塗りつぶす
+		roi = cv::Scalar(240, 176, 0);
+	}
+
+
+	showImage(horizontalRangeDst);
+	cv::imwrite("horizontalDst.jpg", horizontalRangeDst);
 
 }
