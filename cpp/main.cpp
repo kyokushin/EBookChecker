@@ -8,7 +8,7 @@
 
 using namespace std;
 
-//�摜�\���p�֐�
+//画像表示用関数
 int showImage(const cv::Mat& image, int wait = 0){
 	static const string wname("EBookChecker");
 
@@ -16,12 +16,38 @@ int showImage(const cv::Mat& image, int wait = 0){
 	return cv::waitKey(wait);
 }
 
+//横方向をしらべる
+//値が同じ連続領域を1、それ以外を0とするcv::Matを返す。
+cv::Mat findSameValueHorizontal(const cv::Mat& src)
+{
+	//積分画像が欲しい
+	CV_Assert(src.type() == CV_32SC1);
+
+	//結果は白黒でいいから8bitの1チャンネル。しかも1行だけ
+	cv::Mat dst(1, src.cols, CV_8UC1);
+	//積分画像はintなのでint型のポインタを取得。下端なので位置はsrc.rows - 1
+	const int* srcLine = src.ptr<int>(src.rows - 1);
+	//結果は白黒の8bitなのでそのまま受け取っている。1行しかないので位置は0
+	unsigned char* dstLine = dst.ptr(0);
+
+	//左から調べるので初期値は左端
+	int before = srcLine[0];
+	for (int i = 1; i < src.cols; i++){
+		//比較結果（0または1）なので255を掛けて見えるように
+		dstLine[i] = (srcLine[i] == before) * 255;
+		//次の比較のために値を代入
+		before = srcLine[i];
+	}
+
+	return dst;
+}
+
 int main(int argc, char** argv)
 {
 
 
 #ifndef _DEBUG
-	//�R�}���h���C�������̉�́B�f�o�b�O�̎��͎g��Ȃ�
+	//コマンドライン引数の解析。デバッグの時は使わない
 	string commandArgs =
 		"@input |  | processing one image or image named serial number"
 		;
@@ -36,36 +62,41 @@ int main(int argc, char** argv)
 	cout << "input file:" << src << endl;
 	
 
-	//�摜�̓ǂݍ��݁B�O���[�X�P�[���摜�Ƃ��ēǂݍ���
+	//画像の読み込み。グレースケール画像として読み込む
 	cv::Mat image = cv::imread(src, CV_LOAD_IMAGE_GRAYSCALE);
 	CV_Assert(image.channels() == 1 && image.type() == CV_8UC1);
 	showImage(image);
 
-	//��l��
+	//二値化
 	cv::Mat binary;
-	int binaryMax = 1;//��l�����̍ő�l��1�ɁB�ϕ�����Ƃ��ɔ��������Ƃ��납���������Ƃ��납���킩��΂����B
+	int binaryMax = 1;//二値化時の最大値は1に。積分するときに白だったところか黒だったところかがわかればいい。
 	int binaryThreshold = 128;
 	cv::threshold(image, binary, binaryThreshold, binaryMax, cv::THRESH_BINARY_INV);
 	CV_Assert(binary.channels() == 1 && binary.type() == CV_8UC1);
 	showImage(binary);
 	cv::imwrite("binary.jpg", binary);
 
-	//�ϕ��摜�̐���
+	//積分画像の生成
 	cv::Mat integral;
 	cv::integral(binary, integral);
 	CV_Assert(integral.channels() == 1 && integral.type() == CV_32SC1);
 	showImage(integral);
 	cv::imwrite("integral.jpg", integral);
 
-	//�ϕ��摜�����₷�����鏈��
+	//積分画像を見やすくする処理
 	cv::Mat integralVisible;
 	double max;
 	double min;
-	cv::minMaxLoc(integral, &min, &max);//�ő�l�����ق����̂ő�3�����܂ŁB�ŏ��l��0�̂͂������{����0���m�F���邽�߂Ɏg��
-	CV_Assert(min == 0.0);//�{���ɍŏ��l��0�ɂȂ��Ă��邩�m�F
+	cv::minMaxLoc(integral, &min, &max);//最大値だけほしいので第3引数まで。最小値は0のはずだが本当に0か確認するために使う
+	CV_Assert(min == 0.0);//本当に最小値が0になっているか確認
 
-	integral.convertTo(integralVisible, CV_8UC1, 255.0 / max); //beta�͎g��Ȃ��B0-255�̒l���Ƃ�悤��alpha��^����B
+	integral.convertTo(integralVisible, CV_8UC1, 255.0 / max); //betaは使わない。0-255の値をとるようにalphaを与える。
 	showImage(integralVisible);
 	cv::imwrite("integralVisible.jpg", integralVisible);
+
+
+	cv::Mat dst = findSameValueHorizontal(integral);
+	showImage(dst);
+	cv::imwrite("horizontalDst.jpg", dst);
 
 }
