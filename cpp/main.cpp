@@ -230,5 +230,5 @@ int main(int argc, char** argv)
 	}
 
 	showImage(horizontalRangeDst);
-	cv::imwrite("horizontalVerticalDst.jpg", verticalRangeDst);
+	cv::imwrite("horizontalVerticalDst.jpg", horizontalRangeDst);
 }
