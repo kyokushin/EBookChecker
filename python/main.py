@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import numpy
-import cv2
 import os
+
+import cv2
+import numpy
+
 
 def getImageFromData():
     dataDir = os.path.join(os.path.dirname(__file__), '..', 'data')
@@ -13,9 +15,77 @@ def getImageFromData():
 
     return None
 
+
 def showImage(image, wait=0):
     cv2.imshow('EbookChecker', image)
     cv2.waitKey(wait)
+
+
+class Range:
+    def __init__(self, start=-1, end=-1):
+        self.start = start
+        self.end = end
+
+
+def findSameValueHorizontal(src):
+    assert (src.dtype == numpy.int32)
+
+    ranges = []
+
+    (rows, cols) = src.shape
+    srcLine = src[rows - 1]
+
+    r = Range()
+    for i in range(1, cols):
+
+        sameValue = srcLine[i] == srcLine[i - 1]
+        if sameValue and r.start < 0:
+            r.start = i - 1
+        elif not sameValue and r.start >= 0:
+
+            r.end = i - 1
+            ranges.append(r)
+
+            r = Range()
+
+    if r.start >= 0 and r.end < 0:
+        r.end = cols - 1
+        ranges.append(r)
+
+    return ranges
+
+
+def findSameValueVertical(src):
+    assert (src.dtype == numpy.int32)
+
+    ranges = []
+
+    r = Range()
+
+    (rows, cols) = src.shape
+    endPos = cols - 1
+    src0 = src[0, endPos]
+
+    for i in range(1, rows):
+        src1 = src[i, endPos]
+
+        sameValue = src0 == src1
+        if sameValue and r.start < 0:
+            r.start = i - 1
+
+        elif not sameValue and r.start >= 0:
+
+            r.end = i - 1
+            ranges.append(r)
+            r = Range()
+
+        src0 = src1
+
+    if r.start >= 0 and r.end < 0:
+        r.end = rows - 1
+
+    return ranges
+
 
 if __name__ == '__main__':
 
@@ -48,3 +118,29 @@ if __name__ == '__main__':
     showImage(integralVisible)
     cv2.imwrite('integralVisible.jpg', integralVisible)
 
+    # 横方向
+    horizontalRanges = findSameValueHorizontal(integral)
+    horizontalRangeDst = cv2.merge([image, image, image])
+
+    for r in horizontalRanges:
+        horizontalRangeDst[:, r.start:r.end, :] = (240, 176, 0)
+
+    showImage(horizontalRangeDst)
+    cv2.imwrite('horizontalDst.jpg', horizontalRangeDst)
+
+    # 縦方向
+    verticalRanges = findSameValueVertical(integral)
+    verticalRangeDst = cv2.merge([image, image, image])
+
+    for r in verticalRanges:
+        verticalRangeDst[r.start:r.end, :, :] = (0, 0, 255)
+
+    showImage(verticalRangeDst)
+    cv2.imwrite('verticalDst.jpg', verticalRangeDst)
+
+    # 横方向の結果と縦方向の結果を合わせる
+    for r in verticalRanges:
+        horizontalRangeDst[r.start:r.end, :, :] = (0, 0, 255)
+
+    showImage(horizontalRangeDst)
+    cv2.imwrite('horizontalVerticalDst.jpg', horizontalRangeDst)
