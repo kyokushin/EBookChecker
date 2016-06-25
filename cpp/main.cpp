@@ -68,7 +68,7 @@ void findSameValueHorizontal(const cv::Mat& src, std::vector<Range>& ranges)
 
 //縦方向をしらべる
 //文字のない範囲をvectorで返す
-void findSameValueVertival(const cv::Mat& src, std::vector<Range>& ranges)
+void findSameValueVertical(const cv::Mat& src, std::vector<Range>& ranges)
 {
 	//積分画像が欲しい
 	CV_Assert(src.type() == CV_32SC1);
@@ -81,11 +81,7 @@ void findSameValueVertival(const cv::Mat& src, std::vector<Range>& ranges)
 
 	const int endPos = src.cols - 1;
 	int src0 = src.ptr<int>(0)[endPos];
-	int src1 = src.ptr<int>(1)[endPos];
-	if (src0 == src1){
-		range.start = 0;
-	}
-	src0 = src1;
+	int src1;
 
 	for (int i = 1; i < src.rows; i++){
 		src1 = src.ptr<int>(i)[endPos];
@@ -114,7 +110,7 @@ void findSameValueVertival(const cv::Mat& src, std::vector<Range>& ranges)
 	//最後の範囲が画像の右端まである場合はfor文を抜けてから結果を保存する
 	//文字のない範囲のstartは代入済み かつ 範囲のendは初期値のとき
 	if (range.start >= 0 && range.end < 0){
-		range.end = src.cols - 1;
+		range.end = src.rows - 1;
 		ranges.push_back(range);
 	}
 }
@@ -198,7 +194,7 @@ int main(int argc, char** argv)
 	//縦方向
 	//文字のない範囲を受け取る変数
 	vector<Range> verticalRanges;
-	findSameValueVertival(integral, verticalRanges);
+	findSameValueVertical(integral, verticalRanges);
 
 	//文字のない範囲を書き込む画像
 	cv::Mat verticalRangeDst;
