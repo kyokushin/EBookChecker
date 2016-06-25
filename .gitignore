@@ -2,6 +2,7 @@
 build/
 data/*.jpg
 data/*.png
+python/*.jpg
 
 ### Vim
 # swap
