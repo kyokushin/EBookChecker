@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <string>
 
 class Range{
 public:
@@ -24,6 +25,8 @@ public:
 		return horizontalRanges.size();
 	}
 	void computeRange(const int dir = RANGE_ALL);
+
+	void show(const std::string& wname="ScrapImage");
 
 	static const int RANGE_NONE;
 	static const int RANGE_ALL;

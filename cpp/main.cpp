@@ -32,6 +32,9 @@ int main(int argc, char** argv)
 	//画像の読み込み。グレースケール画像として読み込む
 	cv::Mat image = cv::imread(src, CV_LOAD_IMAGE_GRAYSCALE);
 
+	ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
+	scrapImage.show();
+
 }
 
 void showNoneCharacterRange(const cv::Mat& image){

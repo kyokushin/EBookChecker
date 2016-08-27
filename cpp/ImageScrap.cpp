@@ -3,8 +3,11 @@
 
 #include "ImageScrap.h"
 
+#include "cvutils.h"
+
 using namespace std;
 
+const int ImageScrap::RANGE_NONE(0);
 const int ImageScrap::RANGE_ALL(0);
 const int ImageScrap::RANGE_ROWS(1);
 const int ImageScrap::RANGE_COLS(2);
@@ -196,4 +199,28 @@ cv::Mat ImageScrap::getCol(const int i){
 
 	Range& r = horizontalRanges[i];
 	return image.colRange(r.start, r.end);
+}
+
+void ImageScrap::show(const string& wname){
+
+	cv::Mat rangeImage;
+	cv::Mat imgArray[] = {image, image, image};
+
+	cv::merge(imgArray, 3, rangeImage);
+
+
+	for (int i = 0; i < horizontalRanges.size(); i++){
+		Range& r = horizontalRanges[i];
+		rangeImage.colRange(r.start, r.end) = cv::Scalar(240, 176, 0);
+	}
+
+	for (int i = 0; i < verticalRanges.size(); i++){
+		Range& r = verticalRanges[i];
+		rangeImage.rowRange(r.start, r.end) = cv::Scalar(0, 0, 255);
+	}
+
+	cv::imshow(wname, rangeImage);
+	cv::waitKey();
+	
+	cv::destroyWindow(wname);
 }
