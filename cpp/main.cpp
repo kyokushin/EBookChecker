@@ -181,7 +181,7 @@ int main(int argc, char** argv)
 	for (size_t i = 0; i < horizontalRanges.size(); i++){
 		Range& r = horizontalRanges[i];
 		//文字のない範囲を3チャンネルの原画像から切り出す
-		cv::Rect rect(r.start, 0, r.end - r.start + 1, horizontalRangeDst.rows);
+		cv::Rect rect(r.start, 0, r.end - r.start, horizontalRangeDst.rows);
 		cv::Mat roi(horizontalRangeDst, rect);
 		//切り出した画像を1色で塗りつぶす
 		roi = cv::Scalar(240, 176, 0);
@@ -205,7 +205,7 @@ int main(int argc, char** argv)
 	for (size_t i = 0; i < verticalRanges.size(); i++){
 		Range& r = verticalRanges[i];
 		//文字のない範囲を3チャンネルの原画像から切り出す
-		cv::Rect rect(0, r.start, verticalRangeDst.cols, r.end - r.start + 1);
+		cv::Rect rect(0, r.start, verticalRangeDst.cols, r.end - r.start);
 		cv::Mat roi(verticalRangeDst, rect);
 		//切り出した画像を1色で塗りつぶす
 		roi = cv::Scalar(0, 0, 255);
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
 	for (size_t i = 0; i < verticalRanges.size(); i++){
 		Range& r = verticalRanges[i];
 		//文字のない範囲を3チャンネルの原画像から切り出す
-		cv::Rect rect(0, r.start, horizontalRangeDst.cols, r.end - r.start + 1);
+		cv::Rect rect(0, r.start, horizontalRangeDst.cols, r.end - r.start);
 		cv::Mat roi(horizontalRangeDst, rect);
 		//切り出した画像を1色で塗りつぶす
 		roi = cv::Scalar(0, 0, 255);
