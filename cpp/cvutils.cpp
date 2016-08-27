@@ -5,9 +5,16 @@
 
 using namespace std;
 
-int showImage(const cv::Mat& image, int wait = 0){
-	static const string wname("EBookChecker");
+static const string wname("EBookChecker");
+
+int showImage(const cv::Mat& image, int wait){
+	static const string wname(wname);
 
 	cv::imshow(wname, image);
 	return cv::waitKey(wait);
+}
+
+void destroyWindow(){
+
+	cv::destroyWindow(wname);
 }
