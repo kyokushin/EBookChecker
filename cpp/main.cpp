@@ -86,20 +86,6 @@ int main(int argc, char** argv)
 	//文字のない範囲を書き込む画像
 	cv::Mat horizontalRangeDst;
 	drawRange(srcColor, horizontalRanges, ImageScrap::RANGE_COLS, horizontalRangeDst, colorHorizontal);
-
-	/*
-	//文字のない範囲を3チャンネルの原画像に書き込む
-	for (size_t i = 0; i < horizontalRanges.size(); i++){
-		Range& r = horizontalRanges[i];
-		//文字のない範囲を3チャンネルの原画像から切り出す
-		cv::Rect rect(r.start, 0, r.end - r.start, horizontalRangeDst.rows);
-		cv::Mat roi(horizontalRangeDst, rect);
-		//切り出した画像を1色で塗りつぶす
-		roi = cv::Scalar(240, 176, 0);
-	}
-	*/
-
-
 	showImage(horizontalRangeDst);
 	cv::imwrite("horizontalDst.jpg", horizontalRangeDst);
 
@@ -111,35 +97,11 @@ int main(int argc, char** argv)
 	//文字のない範囲を書き込む画像
 	cv::Mat verticalRangeDst;
 	drawRange(srcColor, verticalRanges, ImageScrap::RANGE_ROWS, verticalRangeDst, colorVertical);
-	/**
-	//文字のない範囲を3チャンネルの原画像に書き込む
-	for (size_t i = 0; i < verticalRanges.size(); i++){
-		Range& r = verticalRanges[i];
-		//文字のない範囲を3チャンネルの原画像から切り出す
-		cv::Rect rect(0, r.start, verticalRangeDst.cols, r.end - r.start);
-		cv::Mat roi(verticalRangeDst, rect);
-		//切り出した画像を1色で塗りつぶす
-		roi = cv::Scalar(0, 0, 255);
-	}
-	*/
-
 	showImage(verticalRangeDst);
+
+	//縦横で文字のない範囲を書き込む
 	cv::imwrite("verticalDst.jpg", verticalRangeDst);
-
 	drawRange(horizontalRangeDst, verticalRanges, ImageScrap::RANGE_ROWS, horizontalRangeDst, colorVertical);
-
-	/**
-	//横方向の結果と縦方向の結果を合わせる
-	for (size_t i = 0; i < verticalRanges.size(); i++){
-		Range& r = verticalRanges[i];
-		//文字のない範囲を3チャンネルの原画像から切り出す
-		cv::Rect rect(0, r.start, horizontalRangeDst.cols, r.end - r.start);
-		cv::Mat roi(horizontalRangeDst, rect);
-		//切り出した画像を1色で塗りつぶす
-		roi = cv::Scalar(0, 0, 255);
-	}
-	*/
-
 	showImage(horizontalRangeDst);
 	cv::imwrite("horizontalVerticalDst.jpg", horizontalRangeDst);
 }
