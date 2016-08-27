@@ -80,9 +80,12 @@ int main(int argc, char** argv)
 	cv::Mat srcColor;
 	cv::merge(srcArray, 3, srcColor);
 
+	const cv::Scalar colorVertical(0, 0, 255);
+	const cv::Scalar colorHorizontal(240, 176, 0);
+
 	//文字のない範囲を書き込む画像
 	cv::Mat horizontalRangeDst;
-	drawRange(srcColor, horizontalRanges, horizontalRangeDst);
+	drawRange(srcColor, horizontalRanges, ImageScrap::RANGE_HORIZONTAL, horizontalRangeDst, colorHorizontal);
 
 	/*
 	//文字のない範囲を3チャンネルの原画像に書き込む
@@ -107,7 +110,7 @@ int main(int argc, char** argv)
 
 	//文字のない範囲を書き込む画像
 	cv::Mat verticalRangeDst;
-	drawRange(srcColor, verticalRanges, verticalRangeDst);
+	drawRange(srcColor, verticalRanges, ImageScrap::RANGE_VERTICAL, verticalRangeDst, colorVertical);
 	/**
 	//文字のない範囲を3チャンネルの原画像に書き込む
 	for (size_t i = 0; i < verticalRanges.size(); i++){
@@ -123,7 +126,7 @@ int main(int argc, char** argv)
 	showImage(verticalRangeDst);
 	cv::imwrite("verticalDst.jpg", verticalRangeDst);
 
-	drawRange(horizontalRangeDst, verticalRanges, horizontalRangeDst);
+	drawRange(horizontalRangeDst, verticalRanges, ImageScrap::RANGE_VERTICAL, horizontalRangeDst, colorVertical);
 
 	/**
 	//横方向の結果と縦方向の結果を合わせる

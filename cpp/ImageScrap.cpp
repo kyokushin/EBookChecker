@@ -1,69 +1,68 @@
-#include <opencv2/opencv.hpp>
+ï»¿#include <opencv2/opencv.hpp>
 #include <vector>
 
 #include "ImageScrap.h"
 
 using namespace std;
 
-const int Range::VERTICAL(0);
-const int Range::HORIZONTAL(1);
+const int ImageScrap::RANGE_ALL(0);
+const int ImageScrap::RANGE_VERTICAL(1);
+const int ImageScrap::RANGE_HORIZONTAL(2);
 
-//‰¡•ûŒü‚ğ‚µ‚ç‚×‚é
-//•¶š‚Ì‚È‚¢”ÍˆÍ‚ğvector‚Å•Ô‚·
+//æ¨ªæ–¹å‘ã‚’ã—ã‚‰ã¹ã‚‹
+//æ–‡å­—ã®ãªã„ç¯„å›²ã‚’vectorã§è¿”ã™
 void findSameValueHorizontal(const cv::Mat& src, std::vector<Range>& ranges)
 {
-	//Ï•ª‰æ‘œ‚ª—~‚µ‚¢
+	//ç©åˆ†ç”»åƒãŒæ¬²ã—ã„
 	CV_Assert(src.type() == CV_32SC1);
 
-	//’l‚ª“ü‚Á‚Ä‚¢‚é‚©‚à‚µ‚ê‚È‚¢‚Ì‚Å‹ó‚É‚·‚é
+	//å€¤ãŒå…¥ã£ã¦ã„ã‚‹ã‹ã‚‚ã—ã‚Œãªã„ã®ã§ç©ºã«ã™ã‚‹
 	ranges.clear();
 
-	//Ï•ª‰æ‘œ‚Íint‚È‚Ì‚ÅintŒ^‚Ìƒ|ƒCƒ“ƒ^‚ğæ“¾B‰º’[‚È‚Ì‚ÅˆÊ’u‚Ísrc.rows - 1
+	//ç©åˆ†ç”»åƒã¯intãªã®ã§intå‹ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—ã€‚ä¸‹ç«¯ãªã®ã§ä½ç½®ã¯src.rows - 1
 	const int* srcLine = src.ptr<int>(src.rows - 1);
 
 	Range range;
-	range.dir = Range::HORIZONTAL;
 	for (int i = 1; i < src.cols; i++){
-		//¶—×‚Æ“¯‚¶’l
+		//å·¦éš£ã¨åŒã˜å€¤
 		bool sameValue = srcLine[i] == srcLine[i - 1];
-		//¶—×‚Æ“¯‚¶’l ‚©‚Â ”ÍˆÍ‚Ìstart‚ª‰Šú’li-1j‚Ì‚Æ‚«
+		//å·¦éš£ã¨åŒã˜å€¤ ã‹ã¤ ç¯„å›²ã®startãŒåˆæœŸå€¤ï¼ˆ-1ï¼‰ã®ã¨ã
 		if (sameValue && range.start < 0){
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚Ìn‚Ü‚è
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã®å§‹ã¾ã‚Š
 			range.start = i - 1;
 		}
-		//¶—×‚Æˆá‚¤’l ‚©‚Â ”ÍˆÍ‚Ìstart‚ª‘ã“üÏ‚İ
+		//å·¦éš£ã¨é•ã†å€¤ ã‹ã¤ ç¯„å›²ã®startãŒä»£å…¥æ¸ˆã¿
 		else if (!sameValue && range.start >= 0){
 
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚ÌI‚í‚è
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã®çµ‚ã‚ã‚Š
 			range.end = i - 1;
-			//Œ‹‰Ê‚Æ‚µ‚Ä•Û‘¶
+			//çµæœã¨ã—ã¦ä¿å­˜
 			ranges.push_back(range);
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚ğ‰Šú’l‚É–ß‚·
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã‚’åˆæœŸå€¤ã«æˆ»ã™
 			range.start = -1;
 			range.end = -1;
 		}
 	}
-	//ÅŒã‚Ì”ÍˆÍ‚ª‰æ‘œ‚Ì‰E’[‚Ü‚Å‚ ‚éê‡‚Ífor•¶‚ğ”²‚¯‚Ä‚©‚çŒ‹‰Ê‚ğ•Û‘¶‚·‚é
-	//•¶š‚Ì‚È‚¢”ÍˆÍ‚Ìstart‚Í‘ã“üÏ‚İ ‚©‚Â ”ÍˆÍ‚Ìend‚Í‰Šú’l‚Ì‚Æ‚«
+	//æœ€å¾Œã®ç¯„å›²ãŒç”»åƒã®å³ç«¯ã¾ã§ã‚ã‚‹å ´åˆã¯foræ–‡ã‚’æŠœã‘ã¦ã‹ã‚‰çµæœã‚’ä¿å­˜ã™ã‚‹
+	//æ–‡å­—ã®ãªã„ç¯„å›²ã®startã¯ä»£å…¥æ¸ˆã¿ ã‹ã¤ ç¯„å›²ã®endã¯åˆæœŸå€¤ã®ã¨ã
 	if (range.start >= 0 && range.end < 0){
 		range.end = src.cols - 1;
 		ranges.push_back(range);
 	}
 }
 
-//c•ûŒü‚ğ‚µ‚ç‚×‚é
-//•¶š‚Ì‚È‚¢”ÍˆÍ‚ğvector‚Å•Ô‚·
+//ç¸¦æ–¹å‘ã‚’ã—ã‚‰ã¹ã‚‹
+//æ–‡å­—ã®ãªã„ç¯„å›²ã‚’vectorã§è¿”ã™
 void findSameValueVertical(const cv::Mat& src, std::vector<Range>& ranges)
 {
-	//Ï•ª‰æ‘œ‚ª—~‚µ‚¢
+	//ç©åˆ†ç”»åƒãŒæ¬²ã—ã„
 	CV_Assert(src.type() == CV_32SC1);
 
-	//’l‚ª“ü‚Á‚Ä‚¢‚é‚©‚à‚µ‚ê‚È‚¢‚Ì‚Å‹ó‚É‚·‚é
+	//å€¤ãŒå…¥ã£ã¦ã„ã‚‹ã‹ã‚‚ã—ã‚Œãªã„ã®ã§ç©ºã«ã™ã‚‹
 	ranges.clear();
 
 
 	Range range;
-	range.dir = Range::VERTICAL;
 
 	const int endPos = src.cols - 1;
 	int src0 = src.ptr<int>(0)[endPos];
@@ -72,57 +71,60 @@ void findSameValueVertical(const cv::Mat& src, std::vector<Range>& ranges)
 	for (int i = 1; i < src.rows; i++){
 		src1 = src.ptr<int>(i)[endPos];
 
-		//ã—×‚Æ“¯‚¶’l
+		//ä¸Šéš£ã¨åŒã˜å€¤
 		bool sameValue = src0 == src1;
-		//¶—×‚Æ“¯‚¶’l ‚©‚Â ”ÍˆÍ‚Ìstart‚ª‰Šú’li-1j‚Ì‚Æ‚«
+		//å·¦éš£ã¨åŒã˜å€¤ ã‹ã¤ ç¯„å›²ã®startãŒåˆæœŸå€¤ï¼ˆ-1ï¼‰ã®ã¨ã
 		if (sameValue && range.start < 0){
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚Ìn‚Ü‚è
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã®å§‹ã¾ã‚Š
 			range.start = i - 1;
 		}
-		//¶—×‚Æˆá‚¤’l ‚©‚Â ”ÍˆÍ‚Ìstart‚ª‘ã“üÏ‚İ
+		//å·¦éš£ã¨é•ã†å€¤ ã‹ã¤ ç¯„å›²ã®startãŒä»£å…¥æ¸ˆã¿
 		else if (!sameValue && range.start >= 0){
 
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚ÌI‚í‚è
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã®çµ‚ã‚ã‚Š
 			range.end = i - 1;
-			//Œ‹‰Ê‚Æ‚µ‚Ä•Û‘¶
+			//çµæœã¨ã—ã¦ä¿å­˜
 			ranges.push_back(range);
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚ğ‰Šú’l‚É–ß‚·
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã‚’åˆæœŸå€¤ã«æˆ»ã™
 			range.start = -1;
 			range.end = -1;
 		}
 
 		src0 = src1;
 	}
-	//ÅŒã‚Ì”ÍˆÍ‚ª‰æ‘œ‚Ì‰E’[‚Ü‚Å‚ ‚éê‡‚Ífor•¶‚ğ”²‚¯‚Ä‚©‚çŒ‹‰Ê‚ğ•Û‘¶‚·‚é
-	//•¶š‚Ì‚È‚¢”ÍˆÍ‚Ìstart‚Í‘ã“üÏ‚İ ‚©‚Â ”ÍˆÍ‚Ìend‚Í‰Šú’l‚Ì‚Æ‚«
+	//æœ€å¾Œã®ç¯„å›²ãŒç”»åƒã®å³ç«¯ã¾ã§ã‚ã‚‹å ´åˆã¯foræ–‡ã‚’æŠœã‘ã¦ã‹ã‚‰çµæœã‚’ä¿å­˜ã™ã‚‹
+	//æ–‡å­—ã®ãªã„ç¯„å›²ã®startã¯ä»£å…¥æ¸ˆã¿ ã‹ã¤ ç¯„å›²ã®endã¯åˆæœŸå€¤ã®ã¨ã
 	if (range.start >= 0 && range.end < 0){
 		range.end = src.rows - 1;
 		ranges.push_back(range);
 	}
 }
 
-void drawRange(const cv::Mat& src, const vector<Range>& ranges, cv::Mat& dst,
-	const cv::Scalar& colorVertical, const cv::Scalar& colorHorizontal){
+void drawRange(const cv::Mat& src, const vector<Range>& ranges, const int direction, cv::Mat& dst,
+	const cv::Scalar& color){
 
 	if (&src != &dst && dst.size() != src.size()){
 		src.copyTo(dst);
 	}
 
-	for (size_t i = 0; i < ranges.size(); i++){
-		const Range& r = ranges[i];
-		if (r.dir == Range::VERTICAL){
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚ğ3ƒ`ƒƒƒ“ƒlƒ‹‚ÌŒ´‰æ‘œ‚©‚çØ‚èo‚·
+	if (direction == ImageScrap::RANGE_VERTICAL){
+		for (size_t i = 0; i < ranges.size(); i++){
+			const Range& r = ranges[i];
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã‚’3ãƒãƒ£ãƒ³ãƒãƒ«ã®åŸç”»åƒã‹ã‚‰åˆ‡ã‚Šå‡ºã™
 			cv::Rect rect(0, r.start, dst.cols, r.end - r.start);
 			cv::Mat roi(dst, rect);
-			//Ø‚èo‚µ‚½‰æ‘œ‚ğ1F‚Å“h‚è‚Â‚Ô‚·
-			roi = colorVertical;
+			//åˆ‡ã‚Šå‡ºã—ãŸç”»åƒã‚’1è‰²ã§å¡—ã‚Šã¤ã¶ã™
+			roi = color;
 		}
-		else if (r.dir == Range::HORIZONTAL){
-			//•¶š‚Ì‚È‚¢”ÍˆÍ‚ğ3ƒ`ƒƒƒ“ƒlƒ‹‚ÌŒ´‰æ‘œ‚©‚çØ‚èo‚·
+	}
+	else if (direction == ImageScrap::RANGE_HORIZONTAL){
+		for (size_t i = 0; i < ranges.size(); i++){
+			const Range& r = ranges[i];
+			//æ–‡å­—ã®ãªã„ç¯„å›²ã‚’3ãƒãƒ£ãƒ³ãƒãƒ«ã®åŸç”»åƒã‹ã‚‰åˆ‡ã‚Šå‡ºã™
 			cv::Rect rect(r.start, 0, r.end - r.start, dst.rows);
 			cv::Mat roi(dst, rect);
-			//Ø‚èo‚µ‚½‰æ‘œ‚ğ1F‚Å“h‚è‚Â‚Ô‚·
-			roi = colorHorizontal;
+			//åˆ‡ã‚Šå‡ºã—ãŸç”»åƒã‚’1è‰²ã§å¡—ã‚Šã¤ã¶ã™
+			roi = color;
 		}
 	}
 }
