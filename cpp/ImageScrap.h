@@ -14,9 +14,15 @@ public:
 
 class ImageScrap {
 public:
-	ImageScrap(const cv::Mat& src);
+	ImageScrap(const cv::Mat& src, const int compute = RANGE_NONE);
 	cv::Mat getRow(const int i);
 	cv::Mat getCol(const int i);
+	int getRows(){
+		return verticalRanges.size();
+	}
+	int getCols(){
+		return horizontalRanges.size();
+	}
 	void computeRange(const int dir = RANGE_ALL);
 
 	static const int RANGE_NONE;
@@ -43,5 +49,7 @@ void findSameValueVertical(const cv::Mat& src, std::vector<Range>& ranges);
 
 void drawRange(const cv::Mat& src, const std::vector<Range>& ranges, const int direction, cv::Mat& dst,
 	const cv::Scalar& color);
+
+
 
 #endif

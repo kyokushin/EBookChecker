@@ -123,9 +123,20 @@ void drawRange(const cv::Mat& src, const vector<Range>& ranges, const int direct
 	}
 }
 
+ImageScrap::ImageScrap(const cv::Mat& src, const int compute)
+	:image(src){
+	CV_Assert(image.channels() == 1 && image.type() == CV_8UC1);
+
+	computeRange(compute);
+}
+
 
 void ImageScrap::computeRange(const int dir){
-	CV_Assert(image.channels() == 1 && image.type() == CV_8UC1);
+	if (dir != RANGE_ALL
+		&& dir != RANGE_ROWS
+		&& dir != RANGE_COLS){
+		return;
+	}
 
 	cv::Mat binary;
 	int binaryMax = 1;//二値化時の最大値は1に。積分するときに白だったところか黒だったところかがわかればいい。
