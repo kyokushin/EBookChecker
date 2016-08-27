@@ -6,18 +6,10 @@
 #include <iostream>
 #include <string>
 
+#include "cvutils.h"
 #include "ImageScrap.h"
 
 using namespace std;
-
-//画像表示用関数
-int showImage(const cv::Mat& image, int wait = 0){
-	static const string wname("EBookChecker");
-
-	cv::imshow(wname, image);
-	return cv::waitKey(wait);
-}
-
 
 int main(int argc, char** argv)
 {
@@ -35,10 +27,14 @@ int main(int argc, char** argv)
 #endif
 
 	cout << "input file:" << src << endl;
-	
+
 
 	//画像の読み込み。グレースケール画像として読み込む
 	cv::Mat image = cv::imread(src, CV_LOAD_IMAGE_GRAYSCALE);
+
+}
+
+void showNoneCharacterRange(const cv::Mat& image){
 	CV_Assert(image.channels() == 1 && image.type() == CV_8UC1);
 	showImage(image);
 
