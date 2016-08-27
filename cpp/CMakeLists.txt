@@ -41,7 +41,9 @@ configure_file(${TEST_DATA_PATH_SOURCE} ${INCLUDE_OUTPUT_DIR}/${TEST_DATA_PATH_O
 include_directories(${OpenCV_INCLUDE_DIRS} ${INCLUDE_OUTPUT_DIR})
 link_directories(${OpenCV_LIBRARY_DIRS})
 
-add_executable(ebookChecker main.cpp ${TEST_DATA_PATH_OUTPUT})
+file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
+add_executable(ebookChecker ${SOURCE_FILES} ${TEST_DATA_PATH_OUTPUT})
 target_link_libraries(ebookChecker ${OpenCV_LIBRARIES})
 
 REPLACE_COMPILER_FLAGS()

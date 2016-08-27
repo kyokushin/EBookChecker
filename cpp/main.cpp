@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include "ImageScrap.h"
+
 using namespace std;
 
 //画像表示用関数
@@ -16,104 +18,6 @@ int showImage(const cv::Mat& image, int wait = 0){
 	return cv::waitKey(wait);
 }
 
-class Range{
-public:
-	int start;
-	int end;
-	Range(int start, int end) :start(start), end(end){}
-	Range():start(-1), end(-1){}
-};
-
-//横方向をしらべる
-//文字のない範囲をvectorで返す
-void findSameValueHorizontal(const cv::Mat& src, std::vector<Range>& ranges)
-{
-	//積分画像が欲しい
-	CV_Assert(src.type() == CV_32SC1);
-
-	//値が入っているかもしれないので空にする
-	ranges.clear();
-
-	//積分画像はintなのでint型のポインタを取得。下端なので位置はsrc.rows - 1
-	const int* srcLine = src.ptr<int>(src.rows - 1);
-
-	Range range;
-	for (int i = 1; i < src.cols; i++){
-		//左隣と同じ値
-		bool sameValue = srcLine[i] == srcLine[i - 1];
-		//左隣と同じ値 かつ 範囲のstartが初期値（-1）のとき
-		if (sameValue && range.start < 0){
-			//文字のない範囲の始まり
-			range.start = i - 1;
-		}
-		//左隣と違う値 かつ 範囲のstartが代入済み
-		else if (!sameValue && range.start >= 0){
-			
-			//文字のない範囲の終わり
-			range.end = i - 1;
-			//結果として保存
-			ranges.push_back(range);
-			//文字のない範囲を初期値に戻す
-			range.start = -1;
-			range.end = -1;
-		}
-	}
-	//最後の範囲が画像の右端まである場合はfor文を抜けてから結果を保存する
-	//文字のない範囲のstartは代入済み かつ 範囲のendは初期値のとき
-	if (range.start >= 0 && range.end < 0){
-		range.end = src.cols - 1;
-		ranges.push_back(range);
-	}
-}
-
-//縦方向をしらべる
-//文字のない範囲をvectorで返す
-void findSameValueVertical(const cv::Mat& src, std::vector<Range>& ranges)
-{
-	//積分画像が欲しい
-	CV_Assert(src.type() == CV_32SC1);
-
-	//値が入っているかもしれないので空にする
-	ranges.clear();
-
-
-	Range range;
-
-	const int endPos = src.cols - 1;
-	int src0 = src.ptr<int>(0)[endPos];
-	int src1;
-
-	for (int i = 1; i < src.rows; i++){
-		src1 = src.ptr<int>(i)[endPos];
-
-		//上隣と同じ値
-		bool sameValue = src0 == src1;
-		//左隣と同じ値 かつ 範囲のstartが初期値（-1）のとき
-		if (sameValue && range.start < 0){
-			//文字のない範囲の始まり
-			range.start = i - 1;
-		}
-		//左隣と違う値 かつ 範囲のstartが代入済み
-		else if (!sameValue && range.start >= 0){
-
-			//文字のない範囲の終わり
-			range.end = i - 1;
-			//結果として保存
-			ranges.push_back(range);
-			//文字のない範囲を初期値に戻す
-			range.start = -1;
-			range.end = -1;
-		}
-
-		src0 = src1;
-	}
-	//最後の範囲が画像の右端まである場合はfor文を抜けてから結果を保存する
-	//文字のない範囲のstartは代入済み かつ 範囲のendは初期値のとき
-	if (range.start >= 0 && range.end < 0){
-		range.end = src.rows - 1;
-		ranges.push_back(range);
-	}
-}
 
 int main(int argc, char** argv)
 {
@@ -171,12 +75,16 @@ int main(int argc, char** argv)
 	vector<Range> horizontalRanges;
 	findSameValueHorizontal(integral, horizontalRanges);
 
-	//文字のない範囲を書き込む画像
-	cv::Mat horizontalRangeDst;
 	//1チャンネルの原画像から3チャンネルの画像を作る
 	cv::Mat srcArray[] = {image, image, image};
-	cv::merge(srcArray, 3, horizontalRangeDst);
+	cv::Mat srcColor;
+	cv::merge(srcArray, 3, srcColor);
 
+	//文字のない範囲を書き込む画像
+	cv::Mat horizontalRangeDst;
+	drawRange(srcColor, horizontalRanges, horizontalRangeDst);
+
+	/*
 	//文字のない範囲を3チャンネルの原画像に書き込む
 	for (size_t i = 0; i < horizontalRanges.size(); i++){
 		Range& r = horizontalRanges[i];
@@ -186,6 +94,7 @@ int main(int argc, char** argv)
 		//切り出した画像を1色で塗りつぶす
 		roi = cv::Scalar(240, 176, 0);
 	}
+	*/
 
 
 	showImage(horizontalRangeDst);
@@ -198,9 +107,8 @@ int main(int argc, char** argv)
 
 	//文字のない範囲を書き込む画像
 	cv::Mat verticalRangeDst;
-	//1チャンネルの原画像から3チャンネルの画像を作る
-	cv::merge(srcArray, 3, verticalRangeDst);
-
+	drawRange(srcColor, verticalRanges, verticalRangeDst);
+	/**
 	//文字のない範囲を3チャンネルの原画像に書き込む
 	for (size_t i = 0; i < verticalRanges.size(); i++){
 		Range& r = verticalRanges[i];
@@ -210,11 +118,14 @@ int main(int argc, char** argv)
 		//切り出した画像を1色で塗りつぶす
 		roi = cv::Scalar(0, 0, 255);
 	}
+	*/
 
 	showImage(verticalRangeDst);
 	cv::imwrite("verticalDst.jpg", verticalRangeDst);
 
+	drawRange(horizontalRangeDst, verticalRanges, horizontalRangeDst);
 
+	/**
 	//横方向の結果と縦方向の結果を合わせる
 	for (size_t i = 0; i < verticalRanges.size(); i++){
 		Range& r = verticalRanges[i];
@@ -224,6 +135,7 @@ int main(int argc, char** argv)
 		//切り出した画像を1色で塗りつぶす
 		roi = cv::Scalar(0, 0, 255);
 	}
+	*/
 
 	showImage(horizontalRangeDst);
 	cv::imwrite("horizontalVerticalDst.jpg", horizontalRangeDst);
