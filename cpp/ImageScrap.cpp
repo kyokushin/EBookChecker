@@ -125,21 +125,44 @@ void drawRange(const cv::Mat& src, const vector<Range>& ranges, const int direct
 
 
 void ImageScrap::computeRange(const int dir){
+	CV_Assert(image.channels() == 1 && image.type() == CV_8UC1);
+
+	cv::Mat binary;
+	int binaryMax = 1;//二値化時の最大値は1に。積分するときに白だったところか黒だったところかがわかればいい。
+	int binaryThreshold = 128;
+	cv::threshold(image, binary, binaryThreshold, binaryMax, cv::THRESH_BINARY_INV);
+	CV_Assert(binary.channels() == 1 && binary.type() == CV_8UC1);
+
+	//積分画像の生成
+	cv::Mat integral;
+	cv::integral(binary, integral);
+	CV_Assert(integral.channels() == 1 && integral.type() == CV_32SC1);
 
 	if (dir == RANGE_ROWS|| dir == RANGE_ALL){
-		findSameValueVertical(image, verticalRanges);
+		findSameValueVertical(integral, verticalRanges);
 	}
 
 	if (dir == RANGE_COLS|| dir == RANGE_ALL){
-		findSameValueHorizontal(image, horizontalRanges);
+		findSameValueHorizontal(integral, horizontalRanges);
 
 	}
+
+	if (dir == RANGE_ALL
+		|| (dir == RANGE_ROWS && computedRange == RANGE_COLS)
+		|| (dir == RANGE_COLS && computedRange == RANGE_ROWS)
+		){
+		computedRange = RANGE_ALL;
+	}
+	else {
+		computedRange = dir;
+	}
+
 }
 
 cv::Mat ImageScrap::getRow(const int i){
 
 	if (computedRange != RANGE_ALL || computedRange != RANGE_ROWS){
-		findSameValueVertical(image, verticalRanges);
+		computeRange(RANGE_ROWS);
 	}
 
 	if (verticalRanges.size() <= i){
@@ -152,7 +175,7 @@ cv::Mat ImageScrap::getRow(const int i){
 
 cv::Mat ImageScrap::getCol(const int i){
 	if (computedRange != RANGE_ALL || computedRange != RANGE_COLS){
-		findSameValueHorizontal(image, horizontalRanges);
+		computeRange(RANGE_COLS);
 	}
 
 	if (horizontalRanges.size() <= i){
