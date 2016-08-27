@@ -15,17 +15,21 @@ public:
 class ImageScrap {
 public:
 	ImageScrap(const cv::Mat& src);
-	cv::Mat getRow(int i);
-	cv::Mat getCol(int i);
+	cv::Mat getRow(const int i);
+	cv::Mat getCol(const int i);
 	void computeRange(const int dir = RANGE_ALL);
 
+	static const int RANGE_NONE;
 	static const int RANGE_ALL;
-	static const int RANGE_VERTICAL;
-	static const int RANGE_HORIZONTAL;
+	static const int RANGE_ROWS;
+	static const int RANGE_COLS;
 
 private:
-	std::vector<Range> horizontalRange;
-	std::vector<Range> verticalRange;
+	std::vector<Range> horizontalRanges;
+	std::vector<Range> verticalRanges;
+	cv::Mat image;
+	bool computedRange = RANGE_NONE;
+
 };
 
 //横方向をしらべる

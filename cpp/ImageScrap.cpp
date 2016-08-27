@@ -6,8 +6,8 @@
 using namespace std;
 
 const int ImageScrap::RANGE_ALL(0);
-const int ImageScrap::RANGE_VERTICAL(1);
-const int ImageScrap::RANGE_HORIZONTAL(2);
+const int ImageScrap::RANGE_ROWS(1);
+const int ImageScrap::RANGE_COLS(2);
 
 //横方向をしらべる
 //文字のない範囲をvectorで返す
@@ -107,24 +107,59 @@ void drawRange(const cv::Mat& src, const vector<Range>& ranges, const int direct
 		src.copyTo(dst);
 	}
 
-	if (direction == ImageScrap::RANGE_VERTICAL){
+	if (direction == ImageScrap::RANGE_ROWS){
 		for (size_t i = 0; i < ranges.size(); i++){
 			const Range& r = ranges[i];
-			//文字のない範囲を3チャンネルの原画像から切り出す
-			cv::Rect rect(0, r.start, dst.cols, r.end - r.start);
-			cv::Mat roi(dst, rect);
 			//切り出した画像を1色で塗りつぶす
-			roi = color;
+			dst.rowRange(r.start, r.end) = color;
 		}
 	}
-	else if (direction == ImageScrap::RANGE_HORIZONTAL){
+	else if (direction == ImageScrap::RANGE_COLS){
 		for (size_t i = 0; i < ranges.size(); i++){
 			const Range& r = ranges[i];
-			//文字のない範囲を3チャンネルの原画像から切り出す
-			cv::Rect rect(r.start, 0, r.end - r.start, dst.rows);
-			cv::Mat roi(dst, rect);
 			//切り出した画像を1色で塗りつぶす
-			roi = color;
+			dst.colRange(r.start, r.end) = color;
 		}
 	}
+}
+
+
+void ImageScrap::computeRange(const int dir){
+
+	if (dir == RANGE_ROWS|| dir == RANGE_ALL){
+		findSameValueVertical(image, verticalRanges);
+	}
+
+	if (dir == RANGE_COLS|| dir == RANGE_ALL){
+		findSameValueHorizontal(image, horizontalRanges);
+
+	}
+}
+
+cv::Mat ImageScrap::getRow(const int i){
+
+	if (computedRange != RANGE_ALL || computedRange != RANGE_ROWS){
+		findSameValueVertical(image, verticalRanges);
+	}
+
+	if (verticalRanges.size() <= i){
+		return cv::Mat();
+	}
+
+	Range& r = verticalRanges[i];
+	return image.rowRange(r.start, r.end);
+}
+
+cv::Mat ImageScrap::getCol(const int i){
+	if (computedRange != RANGE_ALL || computedRange != RANGE_COLS){
+		findSameValueHorizontal(image, horizontalRanges);
+	}
+
+	if (horizontalRanges.size() <= i){
+		return cv::Mat();
+	}
+
+
+	Range& r = horizontalRanges[i];
+	return image.colRange(r.start, r.end);
 }
