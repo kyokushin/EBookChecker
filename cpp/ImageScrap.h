@@ -37,7 +37,7 @@ private:
 	std::vector<Range> horizontalRanges;
 	std::vector<Range> verticalRanges;
 	cv::Mat image;
-	bool computedRange = RANGE_NONE;
+	int computedRange = RANGE_NONE;
 
 };
 
