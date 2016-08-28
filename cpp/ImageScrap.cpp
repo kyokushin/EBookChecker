@@ -153,12 +153,57 @@ void ImageScrap::computeRange(const int dir){
 	CV_Assert(integral.channels() == 1 && integral.type() == CV_32SC1);
 
 	if (dir == RANGE_ROWS|| dir == RANGE_ALL){
-		findSameValueVertical(integral, verticalRanges);
+		vector<Range> tmpRanges;
+		findSameValueVertical(integral, tmpRanges);
+		verticalRanges.clear();
+
+		Range r;
+		if (tmpRanges[0].start != 0){
+			r.start = 0;
+			r.end = tmpRanges[0].start;
+			verticalRanges.push_back(r);
+		}
+		r.start = tmpRanges[0].end;
+		for (int i = 1; i < tmpRanges.size()-1; i++){
+			r.end = tmpRanges[i].start;
+			verticalRanges.push_back(r);
+			r.start = tmpRanges[i].end;
+		}
+		Range& lr = tmpRanges[tmpRanges.size() - 1];
+		r.end = lr.start;
+		verticalRanges.push_back(r);
+		if (lr.end != image.rows){
+			r.start= lr.end;
+			r.end = image.rows - 1;
+			verticalRanges.push_back(r);
+		}
 	}
 
 	if (dir == RANGE_COLS|| dir == RANGE_ALL){
-		findSameValueHorizontal(integral, horizontalRanges);
+		vector<Range> tmpRanges;
+		findSameValueHorizontal(integral, tmpRanges);
+		horizontalRanges.clear();
 
+		Range r;
+		if (tmpRanges[0].start != 0){
+			r.start = 0;
+			r.end = tmpRanges[0].start;
+			horizontalRanges.push_back(r);
+		}
+		r.start = tmpRanges[0].end;
+		for (int i = 1; i < tmpRanges.size()-1; i++){
+			r.end = tmpRanges[i].start;
+			horizontalRanges.push_back(r);
+			r.start = tmpRanges[i].end;
+		}
+		Range& lr = tmpRanges[tmpRanges.size() - 1];
+		r.end = lr.start;
+		horizontalRanges.push_back(r);
+		if (lr.end != image.cols){
+			r.start= lr.end;
+			r.end = image.cols - 1;
+			horizontalRanges.push_back(r);
+		}
 	}
 
 	if (dir == RANGE_ALL
