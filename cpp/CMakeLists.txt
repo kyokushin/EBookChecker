@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 find_package(OpenCV 3.1 EXACT REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
 project(EBookChecker)
 
@@ -38,12 +39,16 @@ set(TEST_DATA_PATH_OUTPUT ${TEST_DATA_SOURCE_NAME}.h)
 set(INCLUDE_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 configure_file(${TEST_DATA_PATH_SOURCE} ${INCLUDE_OUTPUT_DIR}/${TEST_DATA_PATH_OUTPUT} @ONLY)
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${INCLUDE_OUTPUT_DIR})
+add_definitions(${Qt5Widgets_DEFINITIONS})
+
+include_directories(${OpenCV_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${INCLUDE_OUTPUT_DIR})
 link_directories(${OpenCV_LIBRARY_DIRS})
 
 file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+
 add_executable(ebookChecker ${SOURCE_FILES} ${TEST_DATA_PATH_OUTPUT})
-target_link_libraries(ebookChecker ${OpenCV_LIBRARIES})
+target_link_libraries(ebookChecker ${OpenCV_LIBRARIES} Qt5::Widgets)
 
 REPLACE_COMPILER_FLAGS()
