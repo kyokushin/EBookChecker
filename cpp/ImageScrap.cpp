@@ -264,8 +264,30 @@ void ImageScrap::show(const string& wname){
 		rangeImage.rowRange(r.start, r.end) = cv::Scalar(0, 0, 255);
 	}
 
-	cv::imshow(wname, rangeImage);
-	cv::waitKey();
+	int key = -1;
+	cv::Mat showImage;
+	float scale = 1.0;
+	float scaleUnit = 0.1;
+	rangeImage.copyTo(showImage);
+	while (key != 0x1b){
+		cv::imshow(wname, showImage);
+		key = cv::waitKey();
+
+		if ('-' == key){
+			scale -= scaleUnit;
+			if (scale < 0.1){
+				scale = 0.1;
+			}
+			cv::resize(rangeImage, showImage, cv::Size(), scale, scale);
+		}
+		else if ('+' == key){
+			scale += scaleUnit;
+			if (scale > 10.0){
+				scale = 10.0;
+			}
+			cv::resize(rangeImage, showImage, cv::Size(), scale, scale);
+		}
+	}
 	
 	cv::destroyWindow(wname);
 }
