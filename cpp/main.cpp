@@ -6,6 +6,9 @@
 #include <iostream>
 #include <string>
 
+#include <qdir.h>
+#include <qstringlist.h>
+
 #include "cvutils.h"
 #include "ImageScrap.h"
 
@@ -23,18 +26,66 @@ int main(int argc, char** argv)
 
 	string src = parser.get<string>(0);
 #else
-	string src = TEST_DATA_0;
+	//string src = TEST_DATA_0;
+	string src = "C:\\Users\\kyokushin\\Pictures\\testData\\";
 #endif
+
+	QDir dir(src.c_str());
+	if (!dir.exists()) {
+		cerr << "failed to find files" << endl;
+		return 1;
+	}
+
+	QFileInfoList fileList = dir.entryInfoList(QDir::Files);
+	fileList.size();
 
 	cout << "input file:" << src << endl;
 
 
-	//画像の読み込み。グレースケール画像として読み込む
-	cv::Mat image = cv::imread(src, CV_LOAD_IMAGE_GRAYSCALE);
+	vector<bool> imageHeights;
+	vector<cv::Mat> pageNumbers;
+	for (int i = 0; i < fileList.size(); i++){
+		string fname = fileList[i].absoluteFilePath().toStdString();
+		cout << fname << endl;
+		cv::Mat colorImage = cv::imread(fname);
 
-	ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
-	scrapImage.show();
+		//画像の読み込み。グレースケール画像として読み込む
+		cv::Mat image;
+		cv::cvtColor(colorImage, image, CV_BGR2GRAY);
 
+		ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
+		scrapImage.show();
+
+		cv::Mat rowImage;
+		scrapImage.getRow(0).copyTo(rowImage);
+		imageHeights.push_back(rowImage.rows);//ページ番号と思われる領域を保存
+		pageNumbers.push_back(rowImage);
+
+		showImage(rowImage);
+	}
+
+	sort(imageHeights.begin(), imageHeights.end());
+	int heightMed = imageHeights[imageHeights.size()/2];
+
+	int minHeight = heightMed * 0.9;
+	int maxHeight = heightMed * 1.1;
+	vector<int> isPageNumber;
+	for (int i = 0; i < imageHeights.size(); i++){
+		isPageNumber.push_back(minHeight <= imageHeights[i] && imageHeights[i] <= maxHeight);
+	}
+
+	for (int i = 0; i < isPageNumber[i]; i++){
+		cout << isPageNumber[i] << endl;
+		if (isPageNumber[i]){
+			showImage(pageNumbers[i]);
+		}
+		else{
+			cv::Mat colorImage = cv::imread(fileList[i].absoluteFilePath().toStdString());
+			showImage(colorImage);
+		}
+	}
+
+	return 0;
 }
 
 void showNoneCharacterRange(const cv::Mat& image){

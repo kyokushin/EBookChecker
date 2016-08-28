@@ -150,59 +150,94 @@ void ImageScrap::computeRange(const int dir){
 	//積分画像の生成
 	cv::Mat integral;
 	cv::integral(binary, integral);
+	integral = cv::Mat(integral, cv::Rect(1, 1, integral.cols-1, integral.rows-1));//積分画像は元画像より1ピクセル大きいので
+	cout << "image:" << image.size() << endl
+		<< "integral:" << integral.size() << endl;
 	CV_Assert(integral.channels() == 1 && integral.type() == CV_32SC1);
 
-	if (dir == RANGE_ROWS|| dir == RANGE_ALL){
+	if (dir == RANGE_ROWS || dir == RANGE_ALL){
 		vector<Range> tmpRanges;
 		findSameValueVertical(integral, tmpRanges);
 		verticalRanges.clear();
-
-		Range r;
-		if (tmpRanges[0].start != 0){
+		if (tmpRanges.size() == 1 && 
+			(tmpRanges[0].start == 0 && tmpRanges[0].end == image.rows - 1)) {
+			//do nothing
+		}
+		else if (0 < tmpRanges.size()){
+			Range r;
+			if (tmpRanges[0].start != 0){
+				r.start = 0;
+				r.end = tmpRanges[0].start;
+				verticalRanges.push_back(r);
+			}
+			r.start = tmpRanges[0].end;
+			int beforeIndex = 0;
+			for (int i = 1; i < tmpRanges.size() - 1; i++){
+				r.end = tmpRanges[i].start;
+				verticalRanges.push_back(r);
+				r.start = tmpRanges[i].end;
+				beforeIndex = i;
+			}
+			if (beforeIndex < tmpRanges.size() - 1) {
+				Range& lr = tmpRanges[tmpRanges.size() - 1];
+				r.end = lr.start;
+				verticalRanges.push_back(r);
+				if (lr.end != image.rows - 1) {
+					r.start = lr.end;
+					r.end = image.rows - 1;
+					verticalRanges.push_back(r);
+				}
+			}
+		}
+		else if (tmpRanges.size() == 0) {
+			Range r;
 			r.start = 0;
-			r.end = tmpRanges[0].start;
-			verticalRanges.push_back(r);
-		}
-		r.start = tmpRanges[0].end;
-		for (int i = 1; i < tmpRanges.size()-1; i++){
-			r.end = tmpRanges[i].start;
-			verticalRanges.push_back(r);
-			r.start = tmpRanges[i].end;
-		}
-		Range& lr = tmpRanges[tmpRanges.size() - 1];
-		r.end = lr.start;
-		verticalRanges.push_back(r);
-		if (lr.end != image.rows){
-			r.start= lr.end;
 			r.end = image.rows - 1;
 			verticalRanges.push_back(r);
 		}
 	}
 
-	if (dir == RANGE_COLS|| dir == RANGE_ALL){
+	if (dir == RANGE_COLS || dir == RANGE_ALL){
 		vector<Range> tmpRanges;
 		findSameValueHorizontal(integral, tmpRanges);
 		horizontalRanges.clear();
 
-		Range r;
-		if (tmpRanges[0].start != 0){
+		if (tmpRanges.size() == 1
+			&& (tmpRanges[0].start == 0 && tmpRanges[0].end == image.cols - 1)
+			) {
+			//do nothing
+		}
+		else if (0 < tmpRanges.size()) {
+			Range r;
+			if (tmpRanges[0].start != 0){
+				r.start = 0;
+				r.end = tmpRanges[0].start;
+				horizontalRanges.push_back(r);
+			}
+			r.start = tmpRanges[0].end;
+			int beforeIndex = 0;
+			for (int i = 1; i < tmpRanges.size() - 1; i++){
+				r.end = tmpRanges[i].start;
+				horizontalRanges.push_back(r);
+				r.start = tmpRanges[i].end;
+				beforeIndex = i;
+			}
+			if (beforeIndex < tmpRanges.size() - 1) {
+				Range& lr = tmpRanges[tmpRanges.size() - 1];
+				r.end = lr.start;
+				horizontalRanges.push_back(r);
+				if (lr.end != image.cols - 1) {
+					r.start = lr.end;
+					r.end = image.cols - 1;
+					horizontalRanges.push_back(r);
+				}
+			}
+		}
+		else if (tmpRanges.size() == 0) {
+			Range r;
 			r.start = 0;
-			r.end = tmpRanges[0].start;
-			horizontalRanges.push_back(r);
-		}
-		r.start = tmpRanges[0].end;
-		for (int i = 1; i < tmpRanges.size()-1; i++){
-			r.end = tmpRanges[i].start;
-			horizontalRanges.push_back(r);
-			r.start = tmpRanges[i].end;
-		}
-		Range& lr = tmpRanges[tmpRanges.size() - 1];
-		r.end = lr.start;
-		horizontalRanges.push_back(r);
-		if (lr.end != image.cols){
-			r.start= lr.end;
 			r.end = image.cols - 1;
-			horizontalRanges.push_back(r);
+			verticalRanges.push_back(r);
 		}
 	}
 
@@ -249,7 +284,7 @@ cv::Mat ImageScrap::getCol(const int i){
 void ImageScrap::show(const string& wname){
 
 	cv::Mat rangeImage;
-	cv::Mat imgArray[] = {image, image, image};
+	cv::Mat imgArray[] = { image, image, image };
 
 	cv::merge(imgArray, 3, rangeImage);
 
@@ -288,6 +323,6 @@ void ImageScrap::show(const string& wname){
 			cv::resize(rangeImage, showImage, cv::Size(), scale, scale);
 		}
 	}
-	
+
 	cv::destroyWindow(wname);
 }
