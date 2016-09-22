@@ -16,7 +16,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-#ifndef _DEBUG
+#ifdef _DEBUG
 	//コマンドライン引数の解析。デバッグの時は使わない
 	string commandArgs =
 		"@input |  | processing one image or image named serial number"
@@ -41,8 +41,9 @@ int main(int argc, char** argv)
 
 	cout << "input file:" << src << endl;
 
+	int waitTime = 10;
 
-	vector<bool> imageHeights;
+	vector<int> imageHeights;
 	vector<cv::Mat> pageNumbers;
 	for (int i = 0; i < fileList.size(); i++){
 		string fname = fileList[i].absoluteFilePath().toStdString();
@@ -54,32 +55,43 @@ int main(int argc, char** argv)
 		cv::cvtColor(colorImage, image, CV_BGR2GRAY);
 
 		ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
-		scrapImage.show();
+		//scrapImage.show();
 
 		cv::Mat rowImage;
 		scrapImage.getRow(0).copyTo(rowImage);
 		imageHeights.push_back(rowImage.rows);//ページ番号と思われる領域を保存
 		pageNumbers.push_back(rowImage);
 
-		showImage(rowImage);
+		cout << "height:" << rowImage.rows << endl;
+		showImage(rowImage, waitTime);
 	}
 
-	sort(imageHeights.begin(), imageHeights.end());
-	int heightMed = imageHeights[imageHeights.size()/2];
+	vector<int> sortedImageHeights;
+	copy(imageHeights.begin(), imageHeights.end(), back_inserter(sortedImageHeights));
 
-	int minHeight = heightMed * 0.9;
-	int maxHeight = heightMed * 1.1;
+	sort(sortedImageHeights.begin(), sortedImageHeights.end());
+	int start;
+	int acceptHeight = 10;
+	for (start = 0; sortedImageHeights[start] < acceptHeight; start++) {
+	}
+
+	int heightMed = sortedImageHeights[start + (sortedImageHeights.size() - start)/2];
+
+	int minHeight = heightMed * 0.5;
+	int maxHeight = heightMed * 2.0;
+	cout << "height median:" << heightMed << endl;
 	vector<int> isPageNumber;
 	for (int i = 0; i < imageHeights.size(); i++){
+		cout << "height:" << imageHeights[i] << endl;
 		isPageNumber.push_back(minHeight <= imageHeights[i] && imageHeights[i] <= maxHeight);
 	}
 
-	for (int i = 0; i < isPageNumber[i]; i++){
-		cout << isPageNumber[i] << endl;
+	for (int i = 0; i < isPageNumber.size(); i++){
 		if (isPageNumber[i]){
 			showImage(pageNumbers[i]);
 		}
 		else{
+			continue;
 			cv::Mat colorImage = cv::imread(fileList[i].absoluteFilePath().toStdString());
 			showImage(colorImage);
 		}
