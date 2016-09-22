@@ -15,7 +15,7 @@ public:
 
 class ImageScrap {
 public:
-	ImageScrap(const cv::Mat& src, const int compute = RANGE_NONE);
+	ImageScrap(const cv::Mat& src, const int compute = RANGE_NONE, const unsigned int binaryThreshold = 192);
 	cv::Mat getRow(const int i);
 	cv::Mat getCol(const int i);
 	int getRows(){
@@ -38,7 +38,7 @@ private:
 	std::vector<Range> verticalRanges;
 	cv::Mat image;
 	int computedRange = RANGE_NONE;
-
+	const unsigned int binaryThreshold;
 };
 
 //横方向をしらべる
