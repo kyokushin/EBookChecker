@@ -45,19 +45,19 @@ int main(int argc, char** argv)
 
 	vector<int> imageHeights;
 	vector<cv::Mat> pageNumbers;
+	cv::Mat rowImage(1, 1, CV_8UC1);
+	cv::Mat image;
 	for (int i = 0; i < fileList.size(); i++){
 		string fname = fileList[i].absoluteFilePath().toStdString();
 		cout << fname << endl;
 		cv::Mat colorImage = cv::imread(fname);
 
 		//画像の読み込み。グレースケール画像として読み込む
-		cv::Mat image;
 		cv::cvtColor(colorImage, image, CV_BGR2GRAY);
 
 		ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
 		//scrapImage.show();
 
-		cv::Mat rowImage;
 		scrapImage.getRow(0).copyTo(rowImage);
 		imageHeights.push_back(rowImage.rows);//ページ番号と思われる領域を保存
 		pageNumbers.push_back(rowImage);
