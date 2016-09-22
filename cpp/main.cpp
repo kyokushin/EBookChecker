@@ -78,17 +78,65 @@ int main(int argc, char** argv)
 	int heightMed = sortedImageHeights[start + (sortedImageHeights.size() - start)/2];
 
 	int minHeight = heightMed * 0.5;
-	int maxHeight = heightMed * 2.0;
+	int maxHeight = heightMed * 1.5;
 	cout << "height median:" << heightMed << endl;
 	vector<int> isPageNumber;
+	int totalHeight = 0;
+	int maxWidth = 0;
+	int acceptedNum = 0;
 	for (int i = 0; i < imageHeights.size(); i++){
 		cout << "height:" << imageHeights[i] << endl;
-		isPageNumber.push_back(minHeight <= imageHeights[i] && imageHeights[i] <= maxHeight);
+		bool accept = minHeight <= imageHeights[i] && imageHeights[i] <= maxHeight;
+		isPageNumber.push_back(accept);
+		if(accept){
+			totalHeight += imageHeights[i];
+			acceptedNum++;
+			maxWidth = max(maxWidth, pageNumbers[i].cols);
+		}
 	}
-
+	cout << "total height:" << totalHeight << endl;
+	const int indexWidth = 100;
+	cv::Mat allPageNumImage(totalHeight + acceptedNum, indexWidth + maxWidth, CV_8UC1);
+	allPageNumImage.setTo(255);
+	int currentTop = 0;
+	stringstream sstr;
 	for (int i = 0; i < isPageNumber.size(); i++){
 		if (isPageNumber[i]){
-			showImage(pageNumbers[i]);
+			cv::Mat &page = pageNumbers[i];
+			ImageScrap scrap(page, ImageScrap::RANGE_COLS);
+			int numOfWords = scrap.getCols();
+			vector<cv::Mat> wordImages;
+			int pageImageWidth = 0;
+			for (int h = 0; h < numOfWords; h++) {
+				cv::Mat wordImage = scrap.getCol(h);
+				wordImages.push_back(wordImage);
+				pageImageWidth += wordImage.cols;
+			}
+			cv::Mat wordImage(page.rows, pageImageWidth + 2 * numOfWords, CV_8UC1);
+			wordImage.setTo(255);
+			int currentWidth = 0;
+			for (int h = 0; h < wordImages.size(); h++) {
+				cv::Mat& word = wordImages[h];
+				word.copyTo(cv::Mat(wordImage, cv::Rect(currentWidth, 0, word.cols, word.rows)));
+				currentWidth += word.cols + 2;
+			}
+			//showImage(wordImage);
+
+			//showImage(page, waitTime);
+			//cv::Mat tmpImage(allPageNumImage, cv::Rect(indexWidth, currentTop, page.cols, page.rows));
+			//page.copyTo(tmpImage);
+			cv::Mat tmpImage(allPageNumImage, cv::Rect(indexWidth, currentTop, wordImage.cols, wordImage.rows));
+			wordImage.copyTo(tmpImage);
+
+			sstr.str("");
+			sstr << i << flush;
+			cv::putText(allPageNumImage, sstr.str(), cv::Point(0, currentTop + page.rows),
+				CV_FONT_HERSHEY_COMPLEX, 0.5,
+				cv::Scalar(0, 0, 0), 1);
+			currentTop += page.rows;
+			cv::Mat(allPageNumImage, cv::Rect(0, currentTop, allPageNumImage.cols, 1)).setTo(0);
+			currentTop++;
+			showImage(tmpImage, waitTime);
 		}
 		else{
 			continue;
@@ -96,6 +144,9 @@ int main(int argc, char** argv)
 			showImage(colorImage);
 		}
 	}
+	cout << "total" << endl;
+	showImage(allPageNumImage);
+	cv::imwrite("pagenumbers.png", allPageNumImage);
 
 	return 0;
 }
