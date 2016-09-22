@@ -7,6 +7,7 @@
 #include <string>
 
 #include <qdir.h>
+#include <qstring.h>
 #include <qstringlist.h>
 
 #include "cvutils.h"
@@ -14,25 +15,47 @@
 
 using namespace std;
 
+enum PagePosition {
+	TOP = 0,
+	BOTTOM = 1
+};
+
 int main(int argc, char** argv)
 {
-#ifdef _DEBUG
+	PagePosition pagePos;
+#ifndef _DEBUG
 	//コマンドライン引数の解析。デバッグの時は使わない
-	string commandArgs =
-		"@input |  | processing one image or image named serial number"
+	const string commandArgs =
+		"{@input |  | directory including ebook (jpg or png)}"
+		"{position | top | page number position. top or bottom}"
 		;
 
 	cv::CommandLineParser parser(argc, argv, commandArgs);
 
 	string src = parser.get<string>(0);
+	string posStr = parser.get<string>("position");
+	if (posStr == "top") {
+		pagePos = PagePosition::TOP;
+		cout << "page number top" << endl;
+	}
+	else if (posStr == "bottom") {
+		pagePos = PagePosition::BOTTOM;
+		cout << "page number bottom" << endl;
+	}
+	else {
+		cerr << "error: page position is incorrect. specify top or bottom. specified:" << posStr << endl;
+		return 1;
+	}
 #else
 	//string src = TEST_DATA_0;
-	string src = "C:\\Users\\kyokushin\\Pictures\\testData\\";
+	//string src = "C:\\Users\\kyokushin\\Pictures\\testData_Top\\";
+	string src = "C:\\Users\\kyokushin\\Pictures\\testData_Bottom\\";
+	pagePos = PagePosition::BOTTOM;
 #endif
 
-	QDir dir(src.c_str());
+	QDir dir(QString::fromLocal8Bit(src.c_str()));//Qt用の文字コードに変換
 	if (!dir.exists()) {
-		cerr << "failed to find files" << endl;
+		cerr << "error directory not exists. entered directory is \"" << src << "\"" << endl;
 		return 1;
 	}
 
@@ -43,12 +66,13 @@ int main(int argc, char** argv)
 
 	int waitTime = 10;
 
+
 	vector<int> imageHeights;
 	vector<cv::Mat> pageNumbers;
 	cv::Mat rowImage(1, 1, CV_8UC1);
 	cv::Mat image;
 	for (int i = 0; i < fileList.size(); i++){
-		string fname = fileList[i].absoluteFilePath().toStdString();
+		string fname(fileList[i].absoluteFilePath().toLocal8Bit().constData());
 		cout << fname << endl;
 		cv::Mat colorImage = cv::imread(fname);
 
@@ -58,7 +82,12 @@ int main(int argc, char** argv)
 		ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
 		//scrapImage.show();
 
-		scrapImage.getRow(0).copyTo(rowImage);
+		if (pagePos == PagePosition::TOP) {
+			scrapImage.getRow(0).copyTo(rowImage);
+		}
+		else {
+			scrapImage.getRow(scrapImage.getRows() - 1).copyTo(rowImage);
+		}
 		imageHeights.push_back(rowImage.rows);//ページ番号と思われる領域を保存
 		pageNumbers.push_back(rowImage);
 
