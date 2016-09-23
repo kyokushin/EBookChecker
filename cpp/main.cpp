@@ -200,7 +200,10 @@ int main(int argc, char** argv)
 	}
 	cout << "total" << endl;
 	showImage(allPageNumImage);
-	cv::imwrite("pagenumbers.png", allPageNumImage);
+	destroyWindow();
+
+	cout << "saving pagenumber image" << endl;
+	cv::imwrite(savePath.absoluteFilePath().toLocal8Bit().constData(), allPageNumImage);
 
 	return 0;
 }
