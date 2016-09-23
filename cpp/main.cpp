@@ -65,19 +65,43 @@ int main(int argc, char** argv)
 	cout << "input file:" << src << endl;
 
 	int waitTime = 10;
-
-
+	double rescaleSize = 1500;
 	vector<int> imageHeights;
 	vector<cv::Mat> pageNumbers;
-	cv::Mat rowImage(1, 1, CV_8UC1);
-	cv::Mat image;
-	for (int i = 0; i < fileList.size(); i++){
+	for (int i = 0; i < fileList.size(); i++) {
+		cv::Mat rowImage(1, 1, CV_8UC1);
 		string fname(fileList[i].absoluteFilePath().toLocal8Bit().constData());
 		cout << fname << endl;
-		cv::Mat colorImage = cv::imread(fname);
+		cv::Mat srcImage;
+		int h = 0;
+		do {
+			srcImage = cv::imread(fname, CV_LOAD_IMAGE_COLOR);
+			if (h++ > 10) {
+				cerr << "failed to read image:" << fname << endl;
+				return 1;
+			}
+		} while (srcImage.empty());
 
-		//画像の読み込み。グレースケール画像として読み込む
-		cv::cvtColor(colorImage, image, CV_BGR2GRAY);
+		cv::Mat colorImage;
+		if (srcImage.rows > rescaleSize || srcImage.cols > rescaleSize) {
+			double scale = rescaleSize / srcImage.rows;
+			double scaleWidth = rescaleSize / srcImage.cols;
+			if (scale > scaleWidth) scale = scaleWidth;
+			cv::resize(srcImage, colorImage, cv::Size(), scale, scale);
+			cout << "resize:" << srcImage.size() << " -> " << colorImage.size() << endl;
+		}
+		else {
+			colorImage = srcImage;
+		}
+
+		cv::Mat image;
+		if (colorImage.channels() == 1) {
+			image = colorImage;
+		}
+		else {
+			//画像の読み込み。グレースケール画像として読み込む
+			cv::cvtColor(colorImage, image, CV_BGR2GRAY);
+		}
 
 		ImageScrap scrapImage(image, ImageScrap::RANGE_ALL);
 		//scrapImage.show();
