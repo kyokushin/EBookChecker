@@ -58,6 +58,11 @@ int main(int argc, char** argv)
 		cerr << "error directory not exists. entered directory is \"" << src << "\"" << endl;
 		return 1;
 	}
+	QFileInfo savePath(QString::fromLocal8Bit((src + '/' + "pagenumbers.png").c_str()));
+	if (savePath.exists()) {
+		cerr << "already exists pagenumber result file.:" << savePath.absoluteFilePath().toLocal8Bit().constData() << endl;
+		return 1;
+	}
 
 	QFileInfoList fileList = dir.entryInfoList(QDir::Files);
 	fileList.size();
