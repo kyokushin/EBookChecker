@@ -19,11 +19,10 @@ enum PagePosition {
 	TOP = 0,
 	BOTTOM = 1
 };
-
+//#define TEST_DATA
 int main(int argc, char** argv)
 {
 	PagePosition pagePos;
-#ifndef _DEBUG
 	//コマンドライン引数の解析。デバッグの時は使わない
 	const string commandArgs =
 		"{@input |  | directory including ebook (jpg or png)}"
@@ -46,11 +45,12 @@ int main(int argc, char** argv)
 		cerr << "error: page position is incorrect. specify top or bottom. specified:" << posStr << endl;
 		return 1;
 	}
-#else
+#ifdef TEST_DATA
 	//string src = TEST_DATA_0;
-	//string src = "C:\\Users\\kyokushin\\Pictures\\testData_Top\\";
-	string src = "C:\\Users\\kyokushin\\Pictures\\testData_Bottom\\";
-	pagePos = PagePosition::BOTTOM;
+	string src = "C:\\Users\\kyokushin\\Pictures\\testData_Top\\";
+	pagePos = PagePosition::TOP;
+	//string src = "C:\\Users\\kyokushin\\Pictures\\testData_Bottom\\";
+	//pagePos = PagePosition::BOTTOM;
 #endif
 
 	QDir dir(QString::fromLocal8Bit(src.c_str()));//Qt用の文字コードに変換
