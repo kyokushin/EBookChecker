@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 		pageNumbers.push_back(rowImage);
 
 		cout << "height:" << rowImage.rows << endl;
-		showImage(rowImage, waitTime);
+		//showImage(rowImage, waitTime);
 	}
 
 	vector<int> sortedImageHeights;
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	for (start = 0; sortedImageHeights[start] < acceptHeight; start++) {
 	}
 
-	int heightMed = sortedImageHeights[start + (sortedImageHeights.size() - start)/2];
+	int heightMed = sortedImageHeights[start + (sortedImageHeights.size() - start) / 2];
 
 	int minHeight = heightMed * 0.5;
 	int maxHeight = heightMed * 1.5;
@@ -137,11 +137,11 @@ int main(int argc, char** argv)
 	int totalHeight = 0;
 	int maxWidth = 0;
 	int acceptedNum = 0;
-	for (int i = 0; i < imageHeights.size(); i++){
+	for (int i = 0; i < imageHeights.size(); i++) {
 		cout << "height:" << imageHeights[i] << endl;
 		bool accept = minHeight <= imageHeights[i] && imageHeights[i] <= maxHeight;
 		isPageNumber.push_back(accept);
-		if(accept){
+		if (accept) {
 			totalHeight += imageHeights[i];
 			acceptedNum++;
 			maxWidth = max(maxWidth, pageNumbers[i].cols);
@@ -153,8 +153,8 @@ int main(int argc, char** argv)
 	allPageNumImage.setTo(255);
 	int currentTop = 0;
 	stringstream sstr;
-	for (int i = 0; i < isPageNumber.size(); i++){
-		if (isPageNumber[i]){
+	for (int i = 0; i < isPageNumber.size(); i++) {
+		if (isPageNumber[i]) {
 			cv::Mat &page = pageNumbers[i];
 			ImageScrap scrap(page, ImageScrap::RANGE_COLS);
 			int numOfWords = scrap.getCols();
@@ -165,13 +165,13 @@ int main(int argc, char** argv)
 				wordImages.push_back(wordImage);
 				pageImageWidth += wordImage.cols;
 			}
-			cv::Mat wordImage(page.rows, pageImageWidth + 2 * numOfWords, CV_8UC1);
+			cv::Mat wordImage(page.rows, pageImageWidth + 1 * numOfWords, CV_8UC1);
 			wordImage.setTo(255);
 			int currentWidth = 0;
 			for (int h = 0; h < wordImages.size(); h++) {
 				cv::Mat& word = wordImages[h];
 				word.copyTo(cv::Mat(wordImage, cv::Rect(currentWidth, 0, word.cols, word.rows)));
-				currentWidth += word.cols + 2;
+				currentWidth += word.cols + 1;
 			}
 			//showImage(wordImage);
 
@@ -181,17 +181,18 @@ int main(int argc, char** argv)
 			cv::Mat tmpImage(allPageNumImage, cv::Rect(indexWidth, currentTop, wordImage.cols, wordImage.rows));
 			wordImage.copyTo(tmpImage);
 
+			//cv::circle(allPageNumImage, cv::Point(0, currentTop + page.rows), 100, cv::Scalar(255), -1);
 			sstr.str("");
 			sstr << i << flush;
-			cv::putText(allPageNumImage, sstr.str(), cv::Point(0, currentTop + page.rows),
-				CV_FONT_HERSHEY_COMPLEX, 0.5,
-				cv::Scalar(0, 0, 0), 1);
+			cv::putText(allPageNumImage, sstr.str(), cv::Point(0, currentTop + page.rows - 2), CV_FONT_HERSHEY_COMPLEX, 0.7, cv::Scalar(0), 2);
+			//cv::putText(allPageNumImage, sstr.str(), cv::Point(0, currentTop ), CV_FONT_HERSHEY_COMPLEX, 0.5, cv::Scalar(0), 1);
+			//showImage(allPageNumImage );
 			currentTop += page.rows;
 			cv::Mat(allPageNumImage, cv::Rect(0, currentTop, allPageNumImage.cols, 1)).setTo(0);
 			currentTop++;
-			showImage(tmpImage, waitTime);
+			//showImage(tmpImage, waitTime);
 		}
-		else{
+		else {
 			continue;
 			cv::Mat colorImage = cv::imread(fileList[i].absoluteFilePath().toStdString());
 			showImage(colorImage);
@@ -204,7 +205,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void showNoneCharacterRange(const cv::Mat& image){
+void showNoneCharacterRange(const cv::Mat& image) {
 	CV_Assert(image.channels() == 1 && image.type() == CV_8UC1);
 	showImage(image);
 
@@ -242,7 +243,7 @@ void showNoneCharacterRange(const cv::Mat& image){
 	findSameValueHorizontal(integral, horizontalRanges);
 
 	//1チャンネルの原画像から3チャンネルの画像を作る
-	cv::Mat srcArray[] = {image, image, image};
+	cv::Mat srcArray[] = { image, image, image };
 	cv::Mat srcColor;
 	cv::merge(srcArray, 3, srcColor);
 
