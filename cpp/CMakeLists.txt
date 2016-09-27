@@ -45,13 +45,25 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 include_directories(${OpenCV_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${INCLUDE_OUTPUT_DIR})
 link_directories(${OpenCV_LIBRARY_DIRS})
 
-## setting for ebookChecker AT
-file(GLOB AT_SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
+## setting for ebookCheck
+file(GLOB LIB_SOURCE_FILES cvutils.* ImageScrap.*)
+add_library(ebookCheck ${LIB_SOURCE_FILES})
+target_link_libraries(ebookCheck ${OpenCV_LIBRARIES} Qt5::Widgets Qt5::Core)
+
+## setting for ebookChecker AT
+file(GLOB AT_SOURCE_FILES ebookChecker-AT-main.cpp)
 add_executable(ebookChecker_AT ${AT_SOURCE_FILES} ${TEST_DATA_PATH_OUTPUT})
-target_link_libraries(ebookChecker_AT ${OpenCV_LIBRARIES} Qt5::Widgets Qt5::Core)
+target_link_libraries(ebookChecker_AT ${OpenCV_LIBRARIES} Qt5::Widgets Qt5::Core ebookCheck)
+add_dependencies(ebookChecker_AT ebookCheck)
+
+## setting for ebookChecker MT
+file(GLOB MT_SOURCE_FILES ebookChecker-MT-main.cpp)
+add_executable(ebookChecker_MT ${MT_SOURCE_FILES} ${TEST_DATA_PATH_OUTPUT})
+target_link_libraries(ebookChecker_MT ${OpenCV_LIBRARIES} Qt5::Widgets Qt5::Core ebookCheck)
+add_dependencies(ebookChecker_MT ebookCheck)
 
 
 REPLACE_COMPILER_FLAGS()
